@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Seats - Cinemax Pro{% endblock %}
+
+{% block content %}
+<div class="header-flex">
+    <div>
+        <h2>{{ show.movie_title }}</h2>
+        <span>{{ show.theatre_name }} • {{ date }} • {{ show.time }}</span>
+    </div>
+</div>
+
+<div class="seat-container glass-card">
+
+    <div class="screen">CINEMA SCREEN</div>
+
+    <div class="seat-legend">
+        <div class="legend-item"><div class="seat available"></div> Available</div>
+        <div class="legend-item"><div class="seat selected"></div> Selected</div>
+        <div class="legend-item"><div class="seat booked"></div> Booked</div>
+    </div>
+
+    <div class="seats-grid" id="seats-grid">
+        {% for seat in seats %}
+            {% if seat.id in booked_seats %}
+                <div class="seat booked">{{ seat.seat_number }}</div>
+            {% else %}
+                <div class="seat available"
+                     data-id="{{ seat.id }}"
+                     data-price="{{ seat.price }}">
+                    {{ seat.seat_number }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <div class="booking-summary">
+        <h3>Total: ₹<span id="total">0</span></h3>
+
+        <form action="{{ url_for('bookings.confirm') }}" method="post" id="form">
+            <input type="hidden" name="show_id" value="{{ show.id }}">
+            <input type="hidden" name="date" value="{{ date }}">
+            <div id="inputs"></div>
+
+            <button type="submit" id="btn" disabled class="btn neon-btn-red">
+                Book Tickets
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+let selected = new Set();
+let total = 0;
+
+document.querySelectorAll('.seat.available').forEach(seat => {
+
+    seat.onclick = function () {   // ✅ use onclick (not addEventListener)
+
+        const id = this.dataset.id;
+        const price = Number(this.dataset.price);
+
+        if (isNaN(price)) return;
+
+        if (selected.has(id)) {
+        selected.delete(id);
+        total -= price;
+
+        this.classList.remove('selected');
+        this.classList.add('available');
+
+        } else {
+
+            if (selected.size >= 10) {
+                alert("Max 10 seats allowed");
+                return;
+            }
+
+            selected.add(id);
+            total += price;
+
+            this.classList.remove('available');
+            this.classList.add('selected');
+        }
+        // update price
+        document.getElementById('total').innerText = total;
+
+        // update hidden inputs
+        const container = document.getElementById('inputs');
+        container.innerHTML = '';
+
+        selected.forEach(s => {
+            container.innerHTML += `<input type="hidden" name="seat_ids" value="${s}">`;
+        });
+
+        document.getElementById('btn').disabled = selected.size === 0;
+    };
+});
+</script>
+
+{% endblock %}

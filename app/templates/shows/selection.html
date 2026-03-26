@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Show - {{ movie.title }}{% endblock %}
+
+{% block content %}
+<div class="header-flex" style="align-items: flex-end;">
+    <div>
+        <h2 style="margin-bottom: 0.5rem;">{{ movie.title }}</h2>
+        <span style="color: var(--text-secondary);">Select Date & Time</span>
+    </div>
+    
+    <!-- ✅ Dynamic Dates -->
+    <div class="date-selector">
+        {% for d in dates %}
+        <a href="{{ url_for('shows.selection', movie_id=movie.id, date=d.isoformat()) }}"
+        class="btn {% if selected_date == d.isoformat() %}neon-btn-red{% else %}ghost-btn{% endif %}">
+            {{ d.strftime('%d %b') }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+{% if shows %}
+    {% for theatre, times in shows.items() %}
+    <div class="theatre-group">
+        <h3 class="theatre-name">{{ theatre }}</h3>
+        <div class="showtimes">
+            {% for show in times %}
+                <a href="{{ url_for('seats.selection', show_id=show.id, date=selected_date) }}" 
+                   class="btn ghost-btn">
+                   {{ show.time }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="glass-card" style="text-align: center; margin-top: 2rem;">
+        <h3>No shows available.</h3>
+        <p style="color: var(--text-secondary); margin-top: 1rem;">
+            Try another date.
+        </p>
+    </div>
+{% endif %}
+{% endblock %}
